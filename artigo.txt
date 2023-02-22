@@ -1,0 +1,11 @@
+descrever um problema que temos
+como a dlq pode resolver esse problema
+o que é dlx
+
+Supondo que temos uma aplicação que usa mensageria e gostariamos de implementar um mecanismo de reprocessamento para mensagens rejeitas por n motivos.
+Seja uma api que ficou momentaneamente fora do ar ou algo que falhou mas gostariamos de reprocessar essa mensagem em um futuro.
+Poderiamos implementar um tratamento de erro no listener mas desse modo teríamos que implementar em todos os listener onde queremos reprocessar.
+
+O rabbitmq tem um funcionalidade chamada [dead letter exchange](https://www.rabbitmq.com/dlx.html) que nos ajuda com esse problema.
+Quando uma mensagem é rejeitada ou recebe um nack com a requeue false a mensagem vai para a exchange informada no 
+Vou mostrar aqui como usar essa funcionalidade usando nodejs.
