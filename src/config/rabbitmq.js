@@ -26,13 +26,13 @@ const defaultQueueConfig = {
     }
 }
 
-export class RabbitClient {
+class RabbitClient {
     constructor() {
         this.conn = null
         this.channel = null
     }
 
-    async connect() {
+    async _connect() {
         const url = `amqp://${connectionConfig.user}:${connectionConfig.password}@${connectionConfig.host}:${connectionConfig.port}/`
         this.conn = await amqp.connect(url)
             .then(conn => {
@@ -76,10 +76,37 @@ export class RabbitClient {
     async consume(msg, consumer) {
         consumer(msg)
             .then(_ => this.channel.ack(msg))
-            .catch(err => this.channel.reject(msg, false))
+            .catch(err => {
+                error('message rejected error=%s, payload=%s', JSON.stringify(err), msg.content.toString())
+                this.channel.reject(msg, false)
+            })
     }
 
+    /**
+     * Send message to exchange
+     * 
+     * @param {String} exchange 
+     * @param {String} routingKey 
+     * @param {Object} payload 
+     */
     async send(exchange, routingKey, payload) {
-        this.channel.publish(exchange, routingKey, Buffer.of(payload))
+        this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(payload)), {
+            contentType: 'application/json'
+        })
+    }
+
+    /**
+     * Listen to queue
+     * 
+     * @param {String} queue 
+     * @param {Function} listener 
+     */
+    async listen(queue, listener) {
+        this.channel.consume(queue, msg => this.consume(msg, listener))
     }
 }
+
+const rabbitClient = new RabbitClient
+await rabbitClient._connect()
+
+export { rabbitClient }

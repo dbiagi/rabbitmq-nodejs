@@ -7,7 +7,8 @@ export class OrderCreatedListener {
         this.orderService = null
     }
 
-    async onOrderCreated(order) {
+    async onOrderCreated(msg) {
+        const order = msg.content.toString()
         info('order created', order)
     }
 }
